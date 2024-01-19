@@ -4,36 +4,56 @@ const { resolve } = require("path");
 const folderPath = resolve(__dirname, "../sessions_data/");
 const sessionFilePath = resolve(folderPath, "./sessions.json");
 
-console.log("pathFolder2", folderPath);
-
-const getSessions = async () => {
+const getSessions = () => {
 	const sessions = JSON.parse(
-		(await fs.promises.readFile(resolve(sessionFilePath))) || []
+		fs.readFileSync(resolve(sessionFilePath)) || []
 	);
 
 	return sessions;
 };
 
-const addSession = async (sessionName, webhookUrl = null) => {
+const addSession = (sessionName, webhookUrl = null) => {
 	if (!sessionName) {
 		throw new Error("Nome da sessão é obrigatoria");
 	}
 
-	const sessions = await getSessions();
+	const sessions = getSessions();
 
-	const data = [{ sessionName, webhookUrl }, ...sessions];
+	const data = sessions.some((session) => session.sessionName === sessionName)
+		? sessions.map((session) =>
+				session.sessionName === sessionName
+					? { ...session, webhookUrl }
+					: session
+		  )
+		: [{ sessionName, webhookUrl }, ...sessions];
 
-	await fs.promises.writeFile(sessionFilePath, JSON.stringify(data));
+	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 
 	return true;
 };
 
-const changeWebhookUrl = async (sessionName, webhookUrl = null) => {
+const removeSession = (sessionName) => {
 	if (!sessionName) {
 		throw new Error("Nome da sessão é obrigatoria");
 	}
 
-	const sessions = await getSessions();
+	const sessions = getSessions();
+
+	const data = sessions.filter(
+		(session) => session.sessionName !== sessionName
+	);
+
+	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
+
+	return true;
+};
+
+const changeWebhookUrl = (sessionName, webhookUrl = null) => {
+	if (!sessionName) {
+		throw new Error("Nome da sessão é obrigatoria");
+	}
+
+	const sessions = getSessions();
 
 	const data = sessions.map((session) =>
 		session.sessionName.trim() === sessionName.trim()
@@ -41,13 +61,14 @@ const changeWebhookUrl = async (sessionName, webhookUrl = null) => {
 			: session
 	);
 
-	await fs.promises.writeFile(sessionFilePath, JSON.stringify(data));
+	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 
 	return true;
 };
 
 module.exports = {
 	addSession,
+	removeSession,
 	getSessions,
 	changeWebhookUrl,
 };

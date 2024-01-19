@@ -7,7 +7,11 @@ const {
 	sessions,
 } = require("../sessions");
 const { sendErrorResponse, waitForNestedObject } = require("../utils");
-const { addSession, changeWebhookUrl } = require("../sessions-data");
+const {
+	addSession,
+	changeWebhookUrl,
+	removeSession,
+} = require("../sessions-data");
 /**
  * Starts a session for the given session ID.
  *
@@ -25,8 +29,10 @@ const startSession = async (req, res) => {
 	try {
 		const sessionId = req.params.sessionId;
 		const webhookUrl = req.params.webhookUrl;
+
 		const setupSessionReturn = setupSession(sessionId);
 		if (!setupSessionReturn.success) {
+			await removeSession(sessionId);
 			/* #swagger.responses[422] = {
         description: "Unprocessable Entity.",
         content: {
@@ -71,6 +77,8 @@ const startSession = async (req, res) => {
       }
     }
     */
+
+		await removeSession(sessionId);
 		console.log("startSession ERROR", error);
 		sendErrorResponse(res, 500, error.message);
 	}

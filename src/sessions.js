@@ -15,7 +15,7 @@ const {
 	waitForNestedObject,
 	checkIfEventisEnabled,
 } = require("./utils");
-const { getSessions } = require("./sessions-data");
+const { getSessions, addSession } = require("./sessions-data");
 
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
@@ -95,7 +95,7 @@ const restoreSessions = () => {
 };
 
 // Setup Session
-const setupSession = (sessionId) => {
+const setupSession = (sessionId, webhookUrl) => {
 	try {
 		if (sessions.has(sessionId)) {
 			return {
@@ -158,6 +158,10 @@ const setupSession = (sessionId) => {
 		client
 			.initialize()
 			.catch((err) => console.log("Initialize error:", err.message));
+
+		if (webhookUrl) {
+			addSession(sessionId, webhookUrl);
+		}
 
 		initializeEvents(client, sessionId);
 
