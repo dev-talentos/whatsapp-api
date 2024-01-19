@@ -368,7 +368,7 @@ const changeWebhookUrlSession = async (req, res) => {
 
 		await changeWebhookUrl(sessionId, webhookUrl);
 
-		res.json({ success: true, message: "Flush completed successfully" });
+		res.json({ success: true, message: "Webhook is change" });
 	} catch (error) {
 		/* #swagger.responses[500] = {
       description: "Server Failure.",

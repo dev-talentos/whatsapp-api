@@ -18,4 +18,4 @@ services:
       - ENABLE_SWAGGER_ENDPOINT=TRUE # OPTIONAL, ENABLES THE /api-docs ENDPOINT
     volumes:
       - ./sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
-      - ./sessions-data:/usr/src/app/sessions-data # Mount the local ./sessions-data/ folder to the container's /usr/src/app/sessions folder
+      - ./sessions_data:/usr/src/app/sessions_data # Mount the local ./sessions-data/ folder to the container's /usr/src/app/sessions folder

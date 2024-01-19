@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { resolve } = require("path");
 
-const folderPath = resolve(__dirname, "../sessions-data/");
+const folderPath = resolve(__dirname, "../sessions_data/");
 const sessionFilePath = resolve(folderPath, "./sessions.json");
 
 console.log("pathFolder2", folderPath);
@@ -14,16 +14,16 @@ const getSessions = async () => {
 	return sessions;
 };
 
-const addSession = async (sessioName, webhookUrl = null) => {
-	if (!sessioName) {
+const addSession = async (sessionName, webhookUrl = null) => {
+	if (!sessionName) {
 		throw new Error("Nome da sessão é obrigatoria");
 	}
 
 	const sessions = await getSessions();
 
-	const data = [{ sessioName, webhookUrl }, ...sessions];
+	const data = [{ sessionName, webhookUrl }, ...sessions];
 
-	await fs.promises.writeFile(pathFolder, JSON.stringify(data));
+	await fs.promises.writeFile(sessionFilePath, JSON.stringify(data));
 
 	return true;
 };
@@ -36,12 +36,12 @@ const changeWebhookUrl = async (sessionName, webhookUrl = null) => {
 	const sessions = await getSessions();
 
 	const data = sessions.map((session) =>
-		session.sessionName === sessionName
+		session.sessionName.trim() === sessionName.trim()
 			? { ...session, webhookUrl }
 			: session
 	);
 
-	await fs.promises.writeFile(pathFolder, JSON.stringify(data));
+	await fs.promises.writeFile(sessionFilePath, JSON.stringify(data));
 
 	return true;
 };

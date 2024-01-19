@@ -43,7 +43,7 @@ sessionRouter.use(middleware.apikey);
 sessionRouter.use(middleware.sessionSwagger);
 routes.use("/session", sessionRouter);
 
-sessionRouter.get(
+sessionRouter.post(
 	"/start/:sessionId",
 	middleware.sessionNameValidation,
 	sessionController.startSession
@@ -53,7 +53,7 @@ sessionRouter.get(
 	middleware.sessionNameValidation,
 	sessionController.statusSession
 );
-sessionRouter.get(
+sessionRouter.post(
 	"/change-webhook/:sessionId",
 	middleware.sessionNameValidation,
 	sessionController.changeWebhookUrlSession
