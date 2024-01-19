@@ -28,7 +28,7 @@ const startSession = async (req, res) => {
 	// #swagger.description = 'Starts a session for the given session ID.'
 	try {
 		const sessionId = req.params.sessionId;
-		const webhookUrl = req.params.webhookUrl;
+		const webhookUrl = req.body.webhookUrl;
 
 		const setupSessionReturn = setupSession(sessionId);
 		if (!setupSessionReturn.success) {
