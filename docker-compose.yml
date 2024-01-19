@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     container_name: whatsapp_web_api
-    image: chrishubert/whatsapp-web-api:latest # Pull the image from Docker Hub
+    build: .
     # restart: always
     ports:
       - "3000:3000"
@@ -18,3 +18,4 @@ services:
       - ENABLE_SWAGGER_ENDPOINT=TRUE # OPTIONAL, ENABLES THE /api-docs ENDPOINT
     volumes:
       - ./sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
+      - ./sessions-data:/usr/src/app/sessions-data # Mount the local ./sessions-data/ folder to the container's /usr/src/app/sessions folder
