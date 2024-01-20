@@ -15,7 +15,7 @@ const {
 	waitForNestedObject,
 	checkIfEventisEnabled,
 } = require("./utils");
-const { getSessions, addSession } = require("./sessions-data");
+const { getSessions, addSession, removeSession } = require("./sessions-data");
 
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
@@ -294,7 +294,17 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message").then((_) => {
 		client.on("message", async (message) => {
+			// /**
+			//  * Retirando o base64 no message
+			//  */
+			// delete message.body;
+
+			if (message?.id?.participant) {
+				return;
+			}
+
 			triggerWebhook(sessionWebhook, sessionId, "message", { message });
+
 			if (message.hasMedia && message._data?.size < maxAttachmentSize) {
 				// custom service event
 				checkIfEventisEnabled("media").then((_) => {
@@ -333,8 +343,18 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_create").then((_) => {
 		client.on("message_create", async (message) => {
+			/**
+			 * Ignorar mensagens do grupo
+			 */
+			if (message?.id?.participant) {
+				return;
+			}
+
+			const contact = await message.getContact();
+
 			triggerWebhook(sessionWebhook, sessionId, "message_create", {
 				message,
+				contact,
 			});
 			if (setMessagesAsSeen) {
 				const chat = await message.getChat();
@@ -434,6 +454,9 @@ const deleteSession = async (sessionId, validation) => {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
 		await deleteSessionFolder(sessionId);
+
+		removeSession(sessionId);
+
 		sessions.delete(sessionId);
 	} catch (error) {
 		console.log(error);
