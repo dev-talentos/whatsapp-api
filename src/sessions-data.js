@@ -5,6 +5,7 @@ const folderPath = resolve(__dirname, "../sessions_data/");
 const sessionFilePath = resolve(folderPath, "./sessions.json");
 
 const getSessions = () => {
+	console.log("sessionFilePath", sessionFilePath);
 	const sessions = JSON.parse(
 		fs.readFileSync(resolve(sessionFilePath)) || []
 	);
