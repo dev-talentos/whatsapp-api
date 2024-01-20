@@ -32,7 +32,7 @@ const startSession = async (req, res) => {
 
 		const setupSessionReturn = setupSession(sessionId, webhookUrl);
 		if (!setupSessionReturn.success) {
-			removeSession(sessionId);
+			//removeSession(sessionId);
 			/* #swagger.responses[422] = {
         description: "Unprocessable Entity.",
         content: {
