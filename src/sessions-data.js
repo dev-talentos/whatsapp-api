@@ -30,6 +30,8 @@ const addSession = (sessionName, webhookUrl = null) => {
 
 	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 
+	console.log("addSession", data);
+
 	return true;
 };
 
@@ -43,6 +45,8 @@ const removeSession = (sessionName) => {
 	const data = sessions.filter(
 		(session) => session.sessionName !== sessionName
 	);
+
+	console.log("removeSession", data);
 
 	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 
@@ -61,6 +65,8 @@ const changeWebhookUrl = (sessionName, webhookUrl = null) => {
 			? { ...session, webhookUrl }
 			: session
 	);
+
+	console.log("changeWebhookUrl", data);
 
 	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 

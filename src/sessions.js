@@ -183,7 +183,7 @@ const initializeEvents = async (client, sessionId) => {
 
 	console.log("sessions", sessions);
 
-	const session = sessions.find(
+	const session = sessions?.find(
 		(session) => session.sessionName === sessionId
 	);
 
