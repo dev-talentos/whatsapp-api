@@ -365,6 +365,13 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_reaction").then((_) => {
 		client.on("message_reaction", (reaction) => {
+			/**
+			 * Ignorar mensagens do grupo
+			 */
+			if (reaction?.id?.participant) {
+				return;
+			}
+
 			triggerWebhook(sessionWebhook, sessionId, "message_reaction", {
 				reaction,
 			});
@@ -400,6 +407,13 @@ const initializeEvents = async (client, sessionId) => {
 		client.on(
 			"contact_changed",
 			async (message, oldId, newId, isContact) => {
+				/**
+				 * Ignorar mensagens do grupo
+				 */
+				if (message?.id?.participant) {
+					return;
+				}
+
 				triggerWebhook(sessionWebhook, sessionId, "contact_changed", {
 					message,
 					oldId,
