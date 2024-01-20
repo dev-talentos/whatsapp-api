@@ -350,11 +350,13 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
-			const contact = await message.getContact();
+			const profilePicUrl = await client.getProfilePicUrl(
+				message._data.from
+			);
 
 			triggerWebhook(sessionWebhook, sessionId, "message_create", {
 				message,
-				contact,
+				profilePicUrl,
 			});
 			if (setMessagesAsSeen) {
 				const chat = await message.getChat();
