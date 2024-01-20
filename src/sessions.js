@@ -249,29 +249,29 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	checkIfEventisEnabled("group_join").then((_) => {
-		client.on("group_join", (notification) => {
-			triggerWebhook(sessionWebhook, sessionId, "group_join", {
-				notification,
-			});
-		});
-	});
+	// checkIfEventisEnabled("group_join").then((_) => {
+	// 	client.on("group_join", (notification) => {
+	// 		triggerWebhook(sessionWebhook, sessionId, "group_join", {
+	// 			notification,
+	// 		});
+	// 	});
+	// });
 
-	checkIfEventisEnabled("group_leave").then((_) => {
-		client.on("group_leave", (notification) => {
-			triggerWebhook(sessionWebhook, sessionId, "group_leave", {
-				notification,
-			});
-		});
-	});
+	// checkIfEventisEnabled("group_leave").then((_) => {
+	// 	client.on("group_leave", (notification) => {
+	// 		triggerWebhook(sessionWebhook, sessionId, "group_leave", {
+	// 			notification,
+	// 		});
+	// 	});
+	// });
 
-	checkIfEventisEnabled("group_update").then((_) => {
-		client.on("group_update", (notification) => {
-			triggerWebhook(sessionWebhook, sessionId, "group_update", {
-				notification,
-			});
-		});
-	});
+	// checkIfEventisEnabled("group_update").then((_) => {
+	// 	client.on("group_update", (notification) => {
+	// 		triggerWebhook(sessionWebhook, sessionId, "group_update", {
+	// 			notification,
+	// 		});
+	// 	});
+	// });
 
 	checkIfEventisEnabled("loading_screen").then((_) => {
 		client.on("loading_screen", (percent, message) => {
