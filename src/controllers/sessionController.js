@@ -57,10 +57,6 @@ const startSession = async (req, res) => {
 
 		// wait until the client is created
 		return waitForNestedObject(setupSessionReturn.client, "pupPage")
-			.then(async (value) => {
-				await addSession(sessionId, webhookUrl);
-				return value;
-			})
 			.then(() =>
 				res.json({ success: true, message: setupSessionReturn.message })
 			)
