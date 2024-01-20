@@ -303,6 +303,10 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
+			message.profilePicUrl = await client.getProfilePicUrl(
+				message._data.from
+			);
+
 			triggerWebhook(sessionWebhook, sessionId, "message", { message });
 
 			if (message.hasMedia && message._data?.size < maxAttachmentSize) {
@@ -350,13 +354,12 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
-			const profilePicUrl = await client.getProfilePicUrl(
+			message.profilePicUrl = await client.getProfilePicUrl(
 				message._data.from
 			);
 
 			triggerWebhook(sessionWebhook, sessionId, "message_create", {
 				message,
-				profilePicUrl,
 			});
 			if (setMessagesAsSeen) {
 				const chat = await message.getChat();
@@ -405,26 +408,26 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	checkIfEventisEnabled("contact_changed").then((_) => {
-		client.on(
-			"contact_changed",
-			async (message, oldId, newId, isContact) => {
-				/**
-				 * Ignorar mensagens do grupo
-				 */
-				if (message?.id?.participant) {
-					return;
-				}
+	// checkIfEventisEnabled("contact_changed").then((_) => {
+	// 	client.on(
+	// 		"contact_changed",
+	// 		async (message, oldId, newId, isContact) => {
+	// 			/**
+	// 			 * Ignorar mensagens do grupo
+	// 			 */
+	// 			if (message?.id?.participant) {
+	// 				return;
+	// 			}
 
-				triggerWebhook(sessionWebhook, sessionId, "contact_changed", {
-					message,
-					oldId,
-					newId,
-					isContact,
-				});
-			}
-		);
-	});
+	// 			triggerWebhook(sessionWebhook, sessionId, "contact_changed", {
+	// 				message,
+	// 				oldId,
+	// 				newId,
+	// 				isContact,
+	// 			});
+	// 		}
+	// 	);
+	// });
 };
 
 // Function to check if folder is writeable
