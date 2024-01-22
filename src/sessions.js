@@ -16,7 +16,7 @@ const {
 	checkIfEventisEnabled,
 } = require("./utils");
 const { getSessions, addSession, removeSession } = require("./sessions-data");
-
+const UserAgent = require("user-agents");
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
 	try {
@@ -113,6 +113,8 @@ const setupSession = (sessionId, webhookUrl) => {
 		delete localAuth.logout;
 		localAuth.logout = () => {};
 
+		const userAgent = new UserAgent();
+
 		const clientOptions = {
 			puppeteer: {
 				executablePath: process.env.CHROME_BIN || null,
@@ -124,8 +126,7 @@ const setupSession = (sessionId, webhookUrl) => {
 					"--disable-dev-shm-usage",
 				],
 			},
-			userAgent:
-				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			userAgent: userAgent.toString(),
 			authStrategy: localAuth,
 		};
 
