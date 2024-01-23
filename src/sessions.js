@@ -115,6 +115,8 @@ const setupSession = (sessionId, webhookUrl) => {
 
 		const userAgent = new UserAgent();
 
+		console.log("userAgent", userAgent.toString());
+
 		const clientOptions = {
 			puppeteer: {
 				executablePath: process.env.CHROME_BIN || null,
@@ -302,6 +304,10 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
+			if (message.deprecatedMms3Url) {
+				message.file = await message.downloadMedia();
+			}
+
 			message.profilePicUrl = await client.getProfilePicUrl(
 				message._data.from
 			);
@@ -356,6 +362,10 @@ const initializeEvents = async (client, sessionId) => {
 			message.profilePicUrl = await client.getProfilePicUrl(
 				message._data.from
 			);
+
+			if (message.deprecatedMms3Url) {
+				message.file = await message.downloadMedia();
+			}
 
 			triggerWebhook(sessionWebhook, sessionId, "message_create", {
 				message,
