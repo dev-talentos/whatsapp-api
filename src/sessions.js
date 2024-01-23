@@ -304,7 +304,7 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
-			if (message.deprecatedMms3Url) {
+			if (message.hasMedia) {
 				message.file = await message.downloadMedia();
 			}
 
@@ -363,7 +363,7 @@ const initializeEvents = async (client, sessionId) => {
 				message._data.from
 			);
 
-			if (message.deprecatedMms3Url) {
+			if (message.hasMedia) {
 				message.file = await message.downloadMedia();
 			}
 
