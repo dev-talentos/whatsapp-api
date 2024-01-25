@@ -172,7 +172,7 @@ const setupSession = (sessionId, webhookUrl) => {
 			.catch((err) => console.log("Initialize error:", err.message));
 
 		if (session?.webhookUrl !== webhookUrl) {
-			addSession(sessionId, webhookUrl, userAgent);
+			addSession(sessionId, webhookUrl, userAgent?.toString());
 		}
 
 		initializeEvents(client, sessionId);
