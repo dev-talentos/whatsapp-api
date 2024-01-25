@@ -15,7 +15,12 @@ const {
 	waitForNestedObject,
 	checkIfEventisEnabled,
 } = require("./utils");
-const { getSessions, addSession, removeSession } = require("./sessions-data");
+const {
+	getSessions,
+	addSession,
+	removeSession,
+	getSessionById,
+} = require("./sessions-data");
 const UserAgent = require("user-agents");
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
@@ -113,7 +118,11 @@ const setupSession = (sessionId, webhookUrl) => {
 		delete localAuth.logout;
 		localAuth.logout = () => {};
 
-		const userAgent = new UserAgent();
+		const session = getSessionById(sessionId);
+
+		const userAgent = session?.userAgent
+			? session?.userAgent
+			: new UserAgent({ deviceCategory: "desktop" });
 
 		console.log("userAgent", userAgent.toString());
 
@@ -162,8 +171,8 @@ const setupSession = (sessionId, webhookUrl) => {
 			.initialize()
 			.catch((err) => console.log("Initialize error:", err.message));
 
-		if (webhookUrl) {
-			addSession(sessionId, webhookUrl);
+		if (webhookUrl && (!session || session?.webhookUrl !== webhookUrl)) {
+			addSession(sessionId, webhookUrl, userAgent);
 		}
 
 		initializeEvents(client, sessionId);

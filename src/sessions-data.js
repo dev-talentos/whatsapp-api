@@ -12,7 +12,13 @@ const getSessions = () => {
 	return sessions;
 };
 
-const addSession = (sessionName, webhookUrl = null) => {
+const getSessionById = (sessionId) => {
+	const sessions = getSessions();
+
+	return sessions.find((s) => s.sessionName === sessionId);
+};
+
+const addSession = (sessionName, webhookUrl = null, userAgent = null) => {
 	if (!sessionName) {
 		throw new Error("Nome da sessão é obrigatoria");
 	}
@@ -22,10 +28,10 @@ const addSession = (sessionName, webhookUrl = null) => {
 	const data = sessions.some((session) => session.sessionName === sessionName)
 		? sessions.map((session) =>
 				session.sessionName === sessionName
-					? { ...session, webhookUrl }
+					? { ...session, webhookUrl, userAgent }
 					: session
 		  )
-		: [{ sessionName, webhookUrl }, ...sessions];
+		: [{ sessionName, webhookUrl, userAgent }, ...sessions];
 
 	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
 
@@ -66,7 +72,27 @@ const changeWebhookUrl = (sessionName, webhookUrl = null) => {
 	return true;
 };
 
+const changeUserAgent = (sessionName, userAgent = null) => {
+	if (!sessionName) {
+		throw new Error("Nome da sessão é obrigatoria");
+	}
+
+	const sessions = getSessions();
+
+	const data = sessions.map((session) =>
+		session.sessionName.trim() === sessionName.trim()
+			? { ...session, userAgent }
+			: session
+	);
+
+	fs.writeFileSync(sessionFilePath, JSON.stringify(data));
+
+	return true;
+};
+
 module.exports = {
+	changeUserAgent,
+	getSessionById,
 	addSession,
 	removeSession,
 	getSessions,
