@@ -191,13 +191,9 @@ const setupSession = (sessionId, webhookUrl) => {
 
 const initializeEvents = async (client, sessionId) => {
 	// check if the session webhook is overridden
-	const sessions = getSessions();
+	const session = getSessionById(sessionId);
 
-	const session = sessions?.find(
-		(session) => session.sessionName === sessionId
-	);
-
-	const sessionWebhook = session.webhookUrl;
+	const sessionWebhook = session?.webhookUrl;
 
 	console.log("initializeEvents.sessionWebhook", sessionWebhook);
 
