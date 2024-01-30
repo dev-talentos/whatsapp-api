@@ -1,7 +1,13 @@
-const { MessageMedia, Location, Buttons, List, Poll } = require('whatsapp-web.js')
-const { sessions } = require('../sessions')
-const { sendErrorResponse } = require('../utils')
-
+const {
+	MessageMedia,
+	Location,
+	Buttons,
+	List,
+	Poll,
+} = require("whatsapp-web.js");
+const { sessions } = require("../sessions");
+const { sendErrorResponse } = require("../utils");
+const { _getMessageById } = require("./messageController");
 /**
  * Send a message to a chat using the WhatsApp API
  *
@@ -19,7 +25,7 @@ const { sendErrorResponse } = require('../utils')
  * @throws {Error} - If there is an error while sending the message
  */
 const sendMessage = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       '@content': {
@@ -66,64 +72,128 @@ const sendMessage = async (req, res) => {
     }
   */
 
-  try {
-    const { chatId, content, contentType, options } = req.body
-    const client = sessions.get(req.params.sessionId)
+	try {
+		const { chatId, content, contentType, options } = req.body;
+		const client = sessions.get(req.params.sessionId);
 
-    let messageOut
-    switch (contentType) {
-      case 'string':
-        if (options && options.media) {
-          const media = options.media
-          options.media = new MessageMedia(media.mimetype, media.data, media.filename = null, media.filesize = null)
-        }
-        messageOut = await client.sendMessage(chatId, content, options)
-        break
-      case 'MessageMediaFromURL': {
-        const messageMediaFromURL = await MessageMedia.fromUrl(content, { unsafeMime: true })
-        messageOut = await client.sendMessage(chatId, messageMediaFromURL, options)
-        break
-      }
-      case 'MessageMedia': {
-        const messageMedia = new MessageMedia(content.mimetype, content.data, content.filename, content.filesize)
-        messageOut = await client.sendMessage(chatId, messageMedia, options)
-        break
-      }
-      case 'Location': {
-        const location = new Location(content.latitude, content.longitude, content.description)
-        messageOut = await client.sendMessage(chatId, location, options)
-        break
-      }
-      case 'Buttons': {
-        const buttons = new Buttons(content.body, content.buttons, content.title, content.footer)
-        messageOut = await client.sendMessage(chatId, buttons, options)
-        break
-      }
-      case 'List': {
-        const list = new List(content.body, content.buttonText, content.sections, content.title, content.footer)
-        messageOut = await client.sendMessage(chatId, list, options)
-        break
-      }
-      case 'Contact': {
-        const contact = await client.getContactById(typeof content.contactId === 'number' ? content.contactId + '@c.us' : content.contactId)
-        messageOut = await client.sendMessage(chatId, contact, options)
-        break
-      }
-      case 'Poll': {
-        const poll = new Poll(content.pollName, content.pollOptions, content.options)
-        messageOut = await client.sendMessage(chatId, poll, options)
-        break
-      }
-      default:
-        return sendErrorResponse(res, 404, 'contentType invalid, must be string, MessageMedia, MessageMediaFromURL, Location, Buttons, List, Contact or Poll')
-    }
+		let messageOut;
 
-    res.json({ success: true, message: messageOut })
-  } catch (error) {
-    console.log(error)
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+		if (options.quotedMessageId) {
+			const message = await _getMessageById(
+				client,
+				options.quotedMessageId,
+				chatId
+			);
+
+			options.quotedMessageId =
+				message?._data?.id?._serialized || undefined;
+		}
+
+		switch (contentType) {
+			case "string":
+				if (options && options.media) {
+					const media = options.media;
+					options.media = new MessageMedia(
+						media.mimetype,
+						media.data,
+						(media.filename = null),
+						(media.filesize = null)
+					);
+				}
+				messageOut = await client.sendMessage(chatId, content, options);
+				break;
+			case "MessageMediaFromURL": {
+				const messageMediaFromURL = await MessageMedia.fromUrl(
+					content,
+					{ unsafeMime: true }
+				);
+				messageOut = await client.sendMessage(
+					chatId,
+					messageMediaFromURL,
+					options
+				);
+				break;
+			}
+			case "MessageMedia": {
+				const messageMedia = new MessageMedia(
+					content.mimetype,
+					content.data,
+					content.filename,
+					content.filesize
+				);
+				messageOut = await client.sendMessage(
+					chatId,
+					messageMedia,
+					options
+				);
+				break;
+			}
+			case "Location": {
+				const location = new Location(
+					content.latitude,
+					content.longitude,
+					content.description
+				);
+				messageOut = await client.sendMessage(
+					chatId,
+					location,
+					options
+				);
+				break;
+			}
+			case "Buttons": {
+				const buttons = new Buttons(
+					content.body,
+					content.buttons,
+					content.title,
+					content.footer
+				);
+				messageOut = await client.sendMessage(chatId, buttons, options);
+				break;
+			}
+			case "List": {
+				const list = new List(
+					content.body,
+					content.buttonText,
+					content.sections,
+					content.title,
+					content.footer
+				);
+				messageOut = await client.sendMessage(chatId, list, options);
+				break;
+			}
+			case "Contact": {
+				const contact = await client.getContactById(
+					typeof content.contactId === "number"
+						? content.contactId + "@c.us"
+						: content.contactId
+				);
+				messageOut = await client.sendMessage(chatId, contact, options);
+				break;
+			}
+			case "Poll": {
+				const poll = new Poll(
+					content.pollName,
+					content.pollOptions,
+					content.options
+				);
+				messageOut = await client.sendMessage(chatId, poll, options);
+				break;
+			}
+			default:
+				return sendErrorResponse(
+					res,
+					404,
+					"contentType invalid, must be string, MessageMedia, MessageMediaFromURL, Location, Buttons, List, Contact or Poll"
+				);
+		}
+
+		res.json({ success: true, message: messageOut });
+	} catch (error) {
+		console.log(error);
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Get session information for a given sessionId
@@ -137,14 +207,14 @@ const sendMessage = async (req, res) => {
  * @throws Will throw an error if session info cannot be retrieved
  */
 const getClassInfo = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const sessionInfo = await client.info
-    res.json({ success: true, sessionInfo })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const sessionInfo = await client.info;
+		res.json({ success: true, sessionInfo });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Check if a user is registered on WhatsApp
@@ -159,7 +229,7 @@ const getClassInfo = async (req, res) => {
  * @throws Will throw an error if user registration cannot be checked
  */
 const isRegisteredUser = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -174,15 +244,15 @@ const isRegisteredUser = async (req, res) => {
       },
     }
   */
-  try {
-    const { number } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.isRegisteredUser(number)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { number } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.isRegisteredUser(number);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the registered WhatsApp ID for a number
@@ -197,7 +267,7 @@ const isRegisteredUser = async (req, res) => {
  * @throws Will throw an error if user registration cannot be checked
  */
 const getNumberId = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -212,15 +282,15 @@ const getNumberId = async (req, res) => {
       },
     }
   */
-  try {
-    const { number } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.getNumberId(number)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { number } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.getNumberId(number);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Create a group with the given name and participants
@@ -236,15 +306,15 @@ const getNumberId = async (req, res) => {
  * @throws Will throw an error if group cannot be created
  */
 const createGroup = async (req, res) => {
-  try {
-    const { name, participants } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const response = await client.createGroup(name, participants)
-    res.json({ success: true, response })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { name, participants } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const response = await client.createGroup(name, participants);
+		res.json({ success: true, response });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Set the status of the user in a given session
@@ -259,7 +329,7 @@ const createGroup = async (req, res) => {
  * @throws Will throw an error if status cannot be set
  */
 const setStatus = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -274,15 +344,15 @@ const setStatus = async (req, res) => {
       },
     }
   */
-  try {
-    const { status } = req.body
-    const client = sessions.get(req.params.sessionId)
-    await client.setStatus(status)
-    res.json({ success: true })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { status } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		await client.setStatus(status);
+		res.json({ success: true });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the contacts of the current session.
@@ -294,14 +364,14 @@ const setStatus = async (req, res) => {
  * @returns {Promise<void>} - A Promise that resolves with the retrieved contacts or rejects with an error.
  */
 const getContacts = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const contacts = await client.getContacts()
-    res.json({ success: true, contacts })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const contacts = await client.getContacts();
+		res.json({ success: true, contacts });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieve all chats for the given session ID.
@@ -318,14 +388,14 @@ const getContacts = async (req, res) => {
  * @throws {Error} If the operation fails, an error is thrown.
  */
 const getChats = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const chats = await client.getChats()
-    res.json({ success: true, chats })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const chats = await client.getChats();
+		res.json({ success: true, chats });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Returns the profile picture URL for a given contact ID.
@@ -340,7 +410,7 @@ const getChats = async (req, res) => {
  * @throws {Error} - If there is an error retrieving the profile picture URL.
  */
 const getProfilePictureUrl = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -355,15 +425,15 @@ const getProfilePictureUrl = async (req, res) => {
       },
     }
   */
-  try {
-    const { contactId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.getProfilePicUrl(contactId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { contactId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.getProfilePicUrl(contactId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Accepts an invite.
@@ -379,7 +449,7 @@ const getProfilePictureUrl = async (req, res) => {
  * @throws {Error} If there is an error while accepting the invite.
  */
 const acceptInvite = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -394,15 +464,15 @@ const acceptInvite = async (req, res) => {
       },
     }
   */
-  try {
-    const { inviteCode } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const acceptInvite = await client.acceptInvite(inviteCode)
-    res.json({ success: true, acceptInvite })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { inviteCode } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const acceptInvite = await client.acceptInvite(inviteCode);
+		res.json({ success: true, acceptInvite });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the version of WhatsApp Web currently being run.
@@ -417,14 +487,14 @@ const acceptInvite = async (req, res) => {
  * @throws {Error} If there is an error while accepting the invite.
  */
 const getWWebVersion = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.getWWebVersion()
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.getWWebVersion();
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Archives a chat.
@@ -440,7 +510,7 @@ const getWWebVersion = async (req, res) => {
  * @throws {Error} If there is an error while archiving the chat.
  */
 const archiveChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -455,15 +525,15 @@ const archiveChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.archiveChat(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.archiveChat(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Get the list of blocked contacts for the user's client.
@@ -477,14 +547,14 @@ const archiveChat = async (req, res) => {
  * @throws {Error} - Throws an error if the operation fails.
  */
 const getBlockedContacts = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const blockedContacts = await client.getBlockedContacts()
-    res.json({ success: true, blockedContacts })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const blockedContacts = await client.getBlockedContacts();
+		res.json({ success: true, blockedContacts });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Get the chat with the given ID.
@@ -499,7 +569,7 @@ const getBlockedContacts = async (req, res) => {
  * @throws {Error} - Throws an error if the operation fails.
  */
 const getChatById = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -514,15 +584,15 @@ const getChatById = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const chat = await client.getChatById(chatId)
-    res.json({ success: true, chat })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const chat = await client.getChatById(chatId);
+		res.json({ success: true, chat });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Get the labels for the chat with the given ID.
@@ -537,7 +607,7 @@ const getChatById = async (req, res) => {
  * @throws {Error} - Throws an error if the operation fails.
  */
 const getChatLabels = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -552,15 +622,15 @@ const getChatLabels = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const chatLabels = await client.getChatLabels(chatId)
-    res.json({ success: true, chatLabels })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const chatLabels = await client.getChatLabels(chatId);
+		res.json({ success: true, chatLabels });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Get the chats with the given label ID.
@@ -575,7 +645,7 @@ const getChatLabels = async (req, res) => {
  * @throws {Error} - Throws an error if the operation fails.
  */
 const getChatsByLabelId = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -590,15 +660,15 @@ const getChatsByLabelId = async (req, res) => {
       },
     }
   */
-  try {
-    const { labelId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const chats = await client.getChatsByLabelId(labelId)
-    res.json({ success: true, chats })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { labelId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const chats = await client.getChatsByLabelId(labelId);
+		res.json({ success: true, chats });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the common groups between the client's session and the specified contact.
@@ -612,7 +682,7 @@ const getChatsByLabelId = async (req, res) => {
  * @throws {Error} - If an error occurs while retrieving the common groups.
  */
 const getCommonGroups = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -627,15 +697,15 @@ const getCommonGroups = async (req, res) => {
       },
     }
   */
-  try {
-    const { contactId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const groups = await client.getCommonGroups(contactId)
-    res.json({ success: true, groups })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { contactId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const groups = await client.getCommonGroups(contactId);
+		res.json({ success: true, groups });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the contact with the specified ID.
@@ -649,7 +719,7 @@ const getCommonGroups = async (req, res) => {
  * @throws {Error} - If an error occurs while retrieving the contact.
  */
 const getContactById = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -664,15 +734,15 @@ const getContactById = async (req, res) => {
       },
     }
   */
-  try {
-    const { contactId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const contact = await client.getContactById(contactId)
-    res.json({ success: true, contact })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { contactId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const contact = await client.getContactById(contactId);
+		res.json({ success: true, contact });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the invite information for the specified invite code.
@@ -686,7 +756,7 @@ const getContactById = async (req, res) => {
  * @throws {Error} - If an error occurs while retrieving the invite information.
  */
 const getInviteInfo = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -701,15 +771,15 @@ const getInviteInfo = async (req, res) => {
       },
     }
   */
-  try {
-    const { inviteCode } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const inviteInfo = await client.getInviteInfo(inviteCode)
-    res.json({ success: true, inviteInfo })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { inviteCode } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const inviteInfo = await client.getInviteInfo(inviteCode);
+		res.json({ success: true, inviteInfo });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the label with the given ID for a particular session.
@@ -724,7 +794,7 @@ const getInviteInfo = async (req, res) => {
  * @throws {Error} If there is an error retrieving the label.
  */
 const getLabelById = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -739,15 +809,15 @@ const getLabelById = async (req, res) => {
       },
     }
   */
-  try {
-    const { labelId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const label = await client.getLabelById(labelId)
-    res.json({ success: true, label })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { labelId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const label = await client.getLabelById(labelId);
+		res.json({ success: true, label });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves all labels for a particular session.
@@ -760,14 +830,14 @@ const getLabelById = async (req, res) => {
  * @throws {Error} If there is an error retrieving the labels.
  */
 const getLabels = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const labels = await client.getLabels()
-    res.json({ success: true, labels })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const labels = await client.getLabels();
+		res.json({ success: true, labels });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Retrieves the state for a particular session.
@@ -780,14 +850,14 @@ const getLabels = async (req, res) => {
  * @throws {Error} If there is an error retrieving the state.
  */
 const getState = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const state = await client.getState()
-    res.json({ success: true, state })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const state = await client.getState();
+		res.json({ success: true, state });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Marks a chat as unread.
@@ -802,7 +872,7 @@ const getState = async (req, res) => {
  * @throws {Error} - If an error occurs while marking the chat as unread.
  */
 const markChatUnread = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -817,15 +887,15 @@ const markChatUnread = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const mark = await client.markChatUnread(chatId)
-    res.json({ success: true, mark })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const mark = await client.markChatUnread(chatId);
+		res.json({ success: true, mark });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Mutes a chat.
@@ -841,7 +911,7 @@ const markChatUnread = async (req, res) => {
  * @throws {Error} - If an error occurs while muting the chat.
  */
 const muteChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -861,20 +931,20 @@ const muteChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId, unmuteDate } = req.body
-    const client = sessions.get(req.params.sessionId)
-    let mute
-    if (unmuteDate) {
-      mute = await client.muteChat(chatId, new Date(unmuteDate))
-    } else {
-      mute = await client.muteChat(chatId, null)
-    }
-    res.json({ success: true, mute })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId, unmuteDate } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		let mute;
+		if (unmuteDate) {
+			mute = await client.muteChat(chatId, new Date(unmuteDate));
+		} else {
+			mute = await client.muteChat(chatId, null);
+		}
+		res.json({ success: true, mute });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Pins a chat.
@@ -889,7 +959,7 @@ const muteChat = async (req, res) => {
  * @throws {Error} - If an error occurs while pinning the chat.
  */
 const pinChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -904,15 +974,15 @@ const pinChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.pinChat(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.pinChat(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 /**
  * Search messages with the given query and options.
  * @async
@@ -927,7 +997,7 @@ const pinChat = async (req, res) => {
  * @throws {Error} - If there's an error during the search.
  */
 const searchMessages = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -947,20 +1017,20 @@ const searchMessages = async (req, res) => {
       },
     }
   */
-  try {
-    const { query, options } = req.body
-    const client = sessions.get(req.params.sessionId)
-    let messages
-    if (options) {
-      messages = await client.searchMessages(query, options)
-    } else {
-      messages = await client.searchMessages(query)
-    }
-    res.json({ success: true, messages })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { query, options } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		let messages;
+		if (options) {
+			messages = await client.searchMessages(query, options);
+		} else {
+			messages = await client.searchMessages(query);
+		}
+		res.json({ success: true, messages });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Send presence available to the XMPP server.
@@ -973,14 +1043,14 @@ const searchMessages = async (req, res) => {
  * @throws {Error} - If there's an error during the presence sending.
  */
 const sendPresenceAvailable = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const presence = await client.sendPresenceAvailable()
-    res.json({ success: true, presence })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const presence = await client.sendPresenceAvailable();
+		res.json({ success: true, presence });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Send presence unavailable to the XMPP server.
@@ -993,14 +1063,14 @@ const sendPresenceAvailable = async (req, res) => {
  * @throws {Error} - If there's an error during the presence sending.
  */
 const sendPresenceUnavailable = async (req, res) => {
-  try {
-    const client = sessions.get(req.params.sessionId)
-    const presence = await client.sendPresenceUnavailable()
-    res.json({ success: true, presence })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const client = sessions.get(req.params.sessionId);
+		const presence = await client.sendPresenceUnavailable();
+		res.json({ success: true, presence });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Send a 'seen' message status for a given chat ID.
@@ -1014,7 +1084,7 @@ const sendPresenceUnavailable = async (req, res) => {
  * @throws {Error} If there is an issue sending the seen status message, an error will be thrown.
  */
 const sendSeen = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -1029,15 +1099,15 @@ const sendSeen = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.sendSeen(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.sendSeen(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Set the display name for the user's WhatsApp account.
@@ -1051,7 +1121,7 @@ const sendSeen = async (req, res) => {
  * @throws {Error} If there is an issue setting the display name, an error will be thrown.
  */
 const setDisplayName = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -1066,15 +1136,15 @@ const setDisplayName = async (req, res) => {
       },
     }
   */
-  try {
-    const { displayName } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.setDisplayName(displayName)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { displayName } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.setDisplayName(displayName);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Unarchive a chat for the user's WhatsApp account.
@@ -1088,7 +1158,7 @@ const setDisplayName = async (req, res) => {
  * @throws {Error} If there is an issue unarchiving the chat, an error will be thrown.
  */
 const unarchiveChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -1103,15 +1173,15 @@ const unarchiveChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.unarchiveChat(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.unarchiveChat(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Unmutes the chat identified by chatId using the client associated with the given sessionId.
@@ -1126,7 +1196,7 @@ const unarchiveChat = async (req, res) => {
  * @throws {Error} - If an error occurs during the operation, it is thrown and handled by the catch block.
  */
 const unmuteChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -1141,15 +1211,15 @@ const unmuteChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.unmuteChat(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.unmuteChat(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * Unpins the chat identified by chatId using the client associated with the given sessionId.
@@ -1164,7 +1234,7 @@ const unmuteChat = async (req, res) => {
  * @throws {Error} - If an error occurs during the operation, it is thrown and handled by the catch block.
  */
 const unpinChat = async (req, res) => {
-  /*
+	/*
     #swagger.requestBody = {
       required: true,
       schema: {
@@ -1179,15 +1249,15 @@ const unpinChat = async (req, res) => {
       },
     }
   */
-  try {
-    const { chatId } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const result = await client.unpinChat(chatId)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { chatId } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const result = await client.unpinChat(chatId);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 /**
  * update the profile Picture of the session user
@@ -1200,7 +1270,7 @@ const unpinChat = async (req, res) => {
  */
 
 const setProfilePicture = async (req, res) => {
-/*
+	/*
   #swagger.requestBody = {
     required: true,
     schema: {
@@ -1221,50 +1291,50 @@ const setProfilePicture = async (req, res) => {
   }
 */
 
-  try {
-    const { pictureMimetype, pictureData } = req.body
-    const client = sessions.get(req.params.sessionId)
-    const media = new MessageMedia(pictureMimetype, pictureData)
-    const result = await client.setProfilePicture(media)
-    res.json({ success: true, result })
-  } catch (error) {
-    sendErrorResponse(res, 500, error.message)
-  }
-}
+	try {
+		const { pictureMimetype, pictureData } = req.body;
+		const client = sessions.get(req.params.sessionId);
+		const media = new MessageMedia(pictureMimetype, pictureData);
+		const result = await client.setProfilePicture(media);
+		res.json({ success: true, result });
+	} catch (error) {
+		sendErrorResponse(res, 500, error.message);
+	}
+};
 
 module.exports = {
-  getClassInfo,
-  acceptInvite,
-  archiveChat,
-  createGroup,
-  getBlockedContacts,
-  getChatById,
-  getChatLabels,
-  getChats,
-  getChatsByLabelId,
-  getCommonGroups,
-  getContactById,
-  getContacts,
-  getInviteInfo,
-  getLabelById,
-  getLabels,
-  isRegisteredUser,
-  getNumberId,
-  getProfilePictureUrl,
-  getState,
-  markChatUnread,
-  muteChat,
-  pinChat,
-  searchMessages,
-  sendMessage,
-  sendPresenceAvailable,
-  sendPresenceUnavailable,
-  sendSeen,
-  setDisplayName,
-  setProfilePicture,
-  setStatus,
-  unarchiveChat,
-  unmuteChat,
-  unpinChat,
-  getWWebVersion
-}
+	getClassInfo,
+	acceptInvite,
+	archiveChat,
+	createGroup,
+	getBlockedContacts,
+	getChatById,
+	getChatLabels,
+	getChats,
+	getChatsByLabelId,
+	getCommonGroups,
+	getContactById,
+	getContacts,
+	getInviteInfo,
+	getLabelById,
+	getLabels,
+	isRegisteredUser,
+	getNumberId,
+	getProfilePictureUrl,
+	getState,
+	markChatUnread,
+	muteChat,
+	pinChat,
+	searchMessages,
+	sendMessage,
+	sendPresenceAvailable,
+	sendPresenceUnavailable,
+	sendSeen,
+	setDisplayName,
+	setProfilePicture,
+	setStatus,
+	unarchiveChat,
+	unmuteChat,
+	unpinChat,
+	getWWebVersion,
+};
