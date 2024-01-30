@@ -171,7 +171,7 @@ const setupSession = (sessionId, webhookUrl) => {
 			.initialize()
 			.catch((err) => console.log("Initialize error:", err.message));
 
-		if (session?.webhookUrl !== webhookUrl) {
+		if (webhookUrl && session?.webhookUrl !== webhookUrl) {
 			addSession(sessionId, webhookUrl, userAgent?.toString());
 		}
 
