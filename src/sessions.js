@@ -298,49 +298,61 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	checkIfEventisEnabled("message").then((_) => {
-		client.on("message", async (message) => {
-			// /**
-			//  * Retirando o base64 no message
-			//  */
-			// delete message.body;
+	// checkIfEventisEnabled("message").then((_) => {
+	// 	client.on("message", async (message) => {
+	// 		// /**
+	// 		//  * Retirando o base64 no message
+	// 		//  */
+	// 		// delete message.body;
 
-			if (message?.id?.participant) {
-				return;
-			}
+	// 		if (message?.id?.participant) {
+	// 			return;
+	// 		}
 
-			if (message.hasMedia) {
-				message.file = await message.downloadMedia();
-			}
+	// 		if (message.hasMedia) {
+	// 			message.file = await message.downloadMedia();
+	// 		}
 
-			message.profilePicUrl = await client.getProfilePicUrl(
-				message._data.from
-			);
+	// 		if (message.fromMe) {
+	// 			message.contact = await client.getContactById(message._data.to);
 
-			triggerWebhook(sessionWebhook, sessionId, "message", { message });
+	// 			message.profilePicUrl = await client.getProfilePicUrl(
+	// 				message._data.to
+	// 			);
+	// 		} else {
+	// 			message.contact = await client.getContactById(
+	// 				message._data.from
+	// 			);
 
-			if (message.hasMedia && message._data?.size < maxAttachmentSize) {
-				// custom service event
-				checkIfEventisEnabled("media").then((_) => {
-					message
-						.downloadMedia()
-						.then((messageMedia) => {
-							triggerWebhook(sessionWebhook, sessionId, "media", {
-								messageMedia,
-								message,
-							});
-						})
-						.catch((e) => {
-							console.log("Download media error:", e.message);
-						});
-				});
-			}
-			if (setMessagesAsSeen) {
-				const chat = await message.getChat();
-				chat.sendSeen();
-			}
-		});
-	});
+	// 			message.profilePicUrl = await client.getProfilePicUrl(
+	// 				message._data.from
+	// 			);
+	// 		}
+
+	// 		triggerWebhook(sessionWebhook, sessionId, "message", { message });
+
+	// 		// if (message.hasMedia && message._data?.size < maxAttachmentSize) {
+	// 		// 	// custom service event
+	// 		// 	checkIfEventisEnabled("media").then((_) => {
+	// 		// 		message
+	// 		// 			.downloadMedia()
+	// 		// 			.then((messageMedia) => {
+	// 		// 				triggerWebhook(sessionWebhook, sessionId, "media", {
+	// 		// 					messageMedia,
+	// 		// 					message,
+	// 		// 				});
+	// 		// 			})
+	// 		// 			.catch((e) => {
+	// 		// 				console.log("Download media error:", e.message);
+	// 		// 			});
+	// 		// 	});
+	// 		// }
+	// 		if (setMessagesAsSeen) {
+	// 			const chat = await message.getChat();
+	// 			chat.sendSeen();
+	// 		}
+	// 	});
+	// });
 
 	checkIfEventisEnabled("message_ack").then((_) => {
 		client.on("message_ack", async (message, ack) => {
@@ -364,9 +376,21 @@ const initializeEvents = async (client, sessionId) => {
 				return;
 			}
 
-			message.profilePicUrl = await client.getProfilePicUrl(
-				message._data.from
-			);
+			if (message.fromMe) {
+				message.contact = await client.getContactById(message._data.to);
+
+				message.profilePicUrl = await client.getProfilePicUrl(
+					message._data.to
+				);
+			} else {
+				message.contact = await client.getContactById(
+					message._data.from
+				);
+
+				message.profilePicUrl = await client.getProfilePicUrl(
+					message._data.from
+				);
+			}
 
 			if (message.hasMedia) {
 				message.file = await message.downloadMedia();
