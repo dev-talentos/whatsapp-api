@@ -397,7 +397,7 @@ const initializeEvents = async (client, sessionId) => {
 			if (message.hasMedia) {
 				const file = await message.downloadMedia();
 
-				if (file) {
+				if (!file) {
 					const extension = mime.extension(file.mimetype) || "bin";
 
 					const filename = uuid4() + "." + extension;
