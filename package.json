@@ -13,10 +13,12 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-rate-limit": "^6.10.0",
+    "mime-types": "^2.1.35",
     "qr-image": "^3.2.0",
     "qrcode-terminal": "^0.12.0",
     "swagger-ui-express": "^4.6.3",
     "user-agents": "^1.1.92",
+    "uuid": "^9.0.1",
     "whatsapp-web.js": "^1.23.0"
   },
   "devDependencies": {

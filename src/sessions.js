@@ -21,6 +21,8 @@ const {
 	removeSession,
 	getSessionById,
 } = require("./sessions-data");
+const { v4: uuid4 } = require("uuid");
+const mime = require("mime-types");
 const UserAgent = require("user-agents");
 // Function to validate if the session is ready
 const validateSession = async (sessionId) => {
@@ -360,10 +362,10 @@ const initializeEvents = async (client, sessionId) => {
 				message,
 				ack,
 			});
-			if (setMessagesAsSeen) {
-				const chat = await message.getChat();
-				chat.sendSeen();
-			}
+			// if (setMessagesAsSeen) {
+			// 	const chat = await message.getChat();
+			// 	chat.sendSeen();
+			// }
 		});
 	});
 
@@ -393,16 +395,34 @@ const initializeEvents = async (client, sessionId) => {
 			}
 
 			if (message.hasMedia) {
-				message.file = await message.downloadMedia();
+				const file = await message.downloadMedia();
+
+				if (file) {
+					const extension = mime.extension(file.mimetype) || "bin";
+
+					const filename = uuid4() + "." + extension;
+
+					await fs.promises.writeFile(
+						`/usr/src/app/assets/${filename}`,
+						file.data,
+						"base64"
+					);
+
+					message.file = {
+						mimetype: file.mimetype,
+						extension,
+						url: `https://api.whatsapp.maximizados.com.br/assets/${filename}`,
+					};
+				}
 			}
 
 			triggerWebhook(sessionWebhook, sessionId, "message_create", {
 				message,
 			});
-			if (setMessagesAsSeen) {
-				const chat = await message.getChat();
-				chat.sendSeen();
-			}
+			// if (setMessagesAsSeen) {
+			// 	const chat = await message.getChat();
+			// 	chat.sendSeen();
+			// }
 		});
 	});
 
