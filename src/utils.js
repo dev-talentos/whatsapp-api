@@ -4,11 +4,19 @@ const { globalApiKey, disabledCallbacks } = require("./config");
 // Trigger webhook endpoint
 const triggerWebhook = (webhookURL, sessionId, dataType, data) => {
 	if (!webhookURL) return;
+
+	const ONE_MINUTE = 60 * 1000;
+
 	axios
 		.post(
 			webhookURL,
 			{ dataType, data, sessionId },
-			{ headers: { "x-api-key": globalApiKey } }
+			{
+				headers: { "x-api-key": globalApiKey },
+				maxBodyLength: Infinity,
+				maxContentLength: Infinity,
+				timeout: ONE_MINUTE,
+			}
 		)
 		.catch((error) =>
 			console.error(
