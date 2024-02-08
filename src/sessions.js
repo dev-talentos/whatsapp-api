@@ -397,22 +397,27 @@ const initializeEvents = async (client, sessionId) => {
 			if (message.hasMedia) {
 				const file = await message.downloadMedia();
 
-				if (!file) {
-					const extension = mime.extension(file.mimetype) || "bin";
+				try {
+					if (file) {
+						const extension =
+							mime.extension(file.mimetype) || "bin";
 
-					const filename = uuid4() + "." + extension;
+						const filename = uuid4() + "." + extension;
 
-					await fs.promises.writeFile(
-						`/usr/src/app/assets/${filename}`,
-						file.data,
-						"base64"
-					);
+						await fs.promises.writeFile(
+							`/usr/src/app/assets/${filename}`,
+							file.data,
+							"base64"
+						);
 
-					message.file = {
-						mimetype: file.mimetype,
-						extension,
-						url: `https://api.whatsapp.maximizados.com.br/assets/${filename}`,
-					};
+						message.file = {
+							mimetype: file.mimetype,
+							extension,
+							url: `https://api.whatsapp.maximizados.com.br/assets/${filename}`,
+						};
+					}
+				} catch (error) {
+					console.log("error", error);
 				}
 			}
 
