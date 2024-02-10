@@ -193,11 +193,6 @@ const setupSession = (sessionId, webhookUrl) => {
 
 const initializeEvents = async (client, sessionId) => {
 	// check if the session webhook is overridden
-	const session = getSessionById(sessionId);
-
-	const sessionWebhook = session?.webhookUrl;
-
-	console.log("initializeEvents.sessionWebhook", sessionWebhook);
 
 	if (recoverSessions) {
 		waitForNestedObject(client, "pupPage")
@@ -227,24 +222,40 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("auth_failure").then((_) => {
 		client.on("auth_failure", (msg) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "status", { msg });
 		});
 	});
 
 	checkIfEventisEnabled("authenticated").then((_) => {
 		client.on("authenticated", () => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "authenticated");
 		});
 	});
 
 	checkIfEventisEnabled("call").then((_) => {
 		client.on("call", async (call) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "call", { call });
 		});
 	});
 
 	checkIfEventisEnabled("change_state").then((_) => {
 		client.on("change_state", (state) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "change_state", {
 				state,
 			});
@@ -253,6 +264,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("disconnected").then((_) => {
 		client.on("disconnected", (reason) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "disconnected", {
 				reason,
 			});
@@ -285,6 +300,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("loading_screen").then((_) => {
 		client.on("loading_screen", (percent, message) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "loading_screen", {
 				percent,
 				message,
@@ -292,13 +311,13 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	checkIfEventisEnabled("media_uploaded").then((_) => {
-		client.on("media_uploaded", (message) => {
-			triggerWebhook(sessionWebhook, sessionId, "media_uploaded", {
-				message,
-			});
-		});
-	});
+	// checkIfEventisEnabled("media_uploaded").then((_) => {
+	// 	client.on("media_uploaded", (message) => {
+	// 		triggerWebhook(sessionWebhook, sessionId, "media_uploaded", {
+	// 			message,
+	// 		});
+	// 	});
+	// });
 
 	// checkIfEventisEnabled("message").then((_) => {
 	// 	client.on("message", async (message) => {
@@ -358,6 +377,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_ack").then((_) => {
 		client.on("message_ack", async (message, ack) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "message_ack", {
 				message,
 				ack,
@@ -371,6 +394,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_create").then((_) => {
 		client.on("message_create", async (message) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			/**
 			 * Ignorar mensagens do grupo
 			 */
@@ -433,6 +460,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_reaction").then((_) => {
 		client.on("message_reaction", (reaction) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			/**
 			 * Ignorar mensagens do grupo
 			 */
@@ -448,6 +479,10 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_revoke_everyone").then((_) => {
 		client.on("message_revoke_everyone", async (after, before) => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(
 				sessionWebhook,
 				sessionId,
@@ -457,16 +492,20 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	client.on("qr", (qr) => {
-		// inject qr code into session
-		client.qr = qr;
-		checkIfEventisEnabled("qr").then((_) => {
-			triggerWebhook(sessionWebhook, sessionId, "qr", { qr });
-		});
-	});
+	// client.on("qr", (qr) => {
+	// 	// inject qr code into session
+	// 	client.qr = qr;
+	// 	checkIfEventisEnabled("qr").then((_) => {
+	// 		triggerWebhook(sessionWebhook, sessionId, "qr", { qr });
+	// 	});
+	// });
 
 	checkIfEventisEnabled("ready").then((_) => {
 		client.on("ready", () => {
+			const session = getSessionById(sessionId);
+
+			const sessionWebhook = session?.webhookUrl;
+
 			triggerWebhook(sessionWebhook, sessionId, "ready");
 		});
 	});
