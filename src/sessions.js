@@ -396,64 +396,70 @@ const initializeEvents = async (client, sessionId) => {
 
 	checkIfEventisEnabled("message_create").then((_) => {
 		client.on("message_create", async (message) => {
-			console.log("sessionId", sessionId);
-			const session = getSessionById(sessionId);
+			try {
+				console.log(sessionId, message);
+				const session = getSessionById(sessionId);
 
-			const sessionWebhook = session?.webhookUrl;
+				const sessionWebhook = session?.webhookUrl;
 
-			/**
-			 * Ignorar mensagens do grupo
-			 */
-			if (message?.id?.participant) {
-				return;
-			}
-
-			if (message.fromMe) {
-				message.contact = await client.getContactById(message._data.to);
-
-				message.profilePicUrl = await client.getProfilePicUrl(
-					message._data.to
-				);
-			} else {
-				message.contact = await client.getContactById(
-					message._data.from
-				);
-
-				message.profilePicUrl = await client.getProfilePicUrl(
-					message._data.from
-				);
-			}
-
-			if (message.hasMedia) {
-				const file = await message.downloadMedia();
-
-				try {
-					if (file) {
-						const extension =
-							mime.extension(file.mimetype) || "bin";
-
-						const filename = uuid4() + "." + extension;
-
-						await fs.promises.writeFile(
-							`/usr/src/app/assets/${filename}`,
-							file.data,
-							"base64"
-						);
-
-						message.file = {
-							mimetype: file.mimetype,
-							extension,
-							url: `https://api.whatsapp.maximizados.com.br/assets/${filename}`,
-						};
-					}
-				} catch (error) {
-					console.log("error", error);
+				/**
+				 * Ignorar mensagens do grupo
+				 */
+				if (message?.id?.participant) {
+					return;
 				}
-			}
 
-			triggerWebhook(sessionWebhook, sessionId, "message_create", {
-				message,
-			});
+				if (message.fromMe) {
+					message.contact = await client.getContactById(
+						message._data.to
+					);
+
+					message.profilePicUrl = await client.getProfilePicUrl(
+						message._data.to
+					);
+				} else {
+					message.contact = await client.getContactById(
+						message._data.from
+					);
+
+					message.profilePicUrl = await client.getProfilePicUrl(
+						message._data.from
+					);
+				}
+
+				if (message.hasMedia) {
+					const file = await message.downloadMedia();
+
+					try {
+						if (file) {
+							const extension =
+								mime.extension(file.mimetype) || "bin";
+
+							const filename = uuid4() + "." + extension;
+
+							await fs.promises.writeFile(
+								`/usr/src/app/assets/${filename}`,
+								file.data,
+								"base64"
+							);
+
+							message.file = {
+								mimetype: file.mimetype,
+								extension,
+								url: `https://api.whatsapp.maximizados.com.br/assets/${filename}`,
+							};
+						}
+					} catch (error) {
+						console.log("error", error);
+					}
+				}
+
+				triggerWebhook(sessionWebhook, sessionId, "message_create", {
+					message,
+				});
+			} catch (error) {
+				console.log(sessionId, "message_create", error);
+			}
 			// if (setMessagesAsSeen) {
 			// 	const chat = await message.getChat();
 			// 	chat.sendSeen();
