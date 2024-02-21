@@ -122,9 +122,15 @@ const setupSession = (sessionId, webhookUrl) => {
 
 		const session = getSessionById(sessionId);
 
+		const usersAgents = [
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+		];
+
+		const index = Math.floor(Math.random() * usersAgents.length);
+
 		const userAgent = session?.userAgent
 			? session?.userAgent
-			: new UserAgent({ deviceCategory: "desktop" });
+			: usersAgents[index];
 
 		console.log("userAgent", userAgent.toString());
 
