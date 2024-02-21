@@ -122,15 +122,9 @@ const setupSession = (sessionId, webhookUrl) => {
 
 		const session = getSessionById(sessionId);
 
-		const usersAgents = [
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-		];
-
-		const index = Math.floor(Math.random() * usersAgents.length);
-
 		const userAgent = session?.userAgent
 			? session?.userAgent
-			: usersAgents[index];
+			: new UserAgent({ deviceCategory: "desktop" });
 
 		console.log("userAgent", userAgent.toString());
 
@@ -309,6 +303,8 @@ const initializeEvents = async (client, sessionId) => {
 	checkIfEventisEnabled("loading_screen").then((_) => {
 		client.on("loading_screen", (percent, message) => {
 			const session = getSessionById(sessionId);
+
+			console.log(sessionId, { percent, message });
 
 			const sessionWebhook = session?.webhookUrl;
 
