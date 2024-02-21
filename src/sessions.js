@@ -254,6 +254,8 @@ const initializeEvents = async (client, sessionId) => {
 		client.on("change_state", (state) => {
 			const session = getSessionById(sessionId);
 
+			console.log(sessionId, state);
+
 			const sessionWebhook = session?.webhookUrl;
 
 			triggerWebhook(sessionWebhook, sessionId, "change_state", {
