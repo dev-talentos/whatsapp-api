@@ -18,15 +18,15 @@ const triggerWebhook = (webhookURL, sessionId, dataType, data) => {
 				timeout: ONE_MINUTE,
 			}
 		)
-		.catch((error) =>
-			console.error(
-				"Failed to send new message webhook:",
-				sessionId,
-				dataType,
-				error.message,
-				data
-			)
-		);
+		.catch((error) => {
+			// console.error(
+			// 	"Failed to send new message webhook:",
+			// 	sessionId,
+			// 	dataType,
+			// 	error.message,
+			// 	data
+			// );
+		});
 };
 
 // Function to send a response with error status and message
