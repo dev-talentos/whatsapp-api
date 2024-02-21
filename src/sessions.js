@@ -131,7 +131,7 @@ const setupSession = (sessionId, webhookUrl) => {
 		const clientOptions = {
 			puppeteer: {
 				executablePath: process.env.CHROME_BIN || null,
-				// headless: false,
+				//headless: false,
 				args: [
 					"--no-sandbox",
 					"--disable-setuid-sandbox",
@@ -300,18 +300,16 @@ const initializeEvents = async (client, sessionId) => {
 	// 	});
 	// });
 
-	checkIfEventisEnabled("loading_screen").then((_) => {
-		client.on("loading_screen", (percent, message) => {
-			const session = getSessionById(sessionId);
+	client.on("loading_screen", (percent, message) => {
+		const session = getSessionById(sessionId);
 
-			console.log(sessionId, { percent, message });
+		console.log(sessionId, { percent, message });
 
-			const sessionWebhook = session?.webhookUrl;
+		const sessionWebhook = session?.webhookUrl;
 
-			triggerWebhook(sessionWebhook, sessionId, "loading_screen", {
-				percent,
-				message,
-			});
+		triggerWebhook(sessionWebhook, sessionId, "loading_screen", {
+			percent,
+			message,
 		});
 	});
 
@@ -497,13 +495,15 @@ const initializeEvents = async (client, sessionId) => {
 		});
 	});
 
-	// client.on("qr", (qr) => {
-	// 	// inject qr code into session
-	// 	client.qr = qr;
-	// 	checkIfEventisEnabled("qr").then((_) => {
-	// 		triggerWebhook(sessionWebhook, sessionId, "qr", { qr });
-	// 	});
-	// });
+	client.on("qr", (qr) => {
+		console.log("qr", qr);
+
+		// inject qr code into session
+		// client.qr = qr;
+		// checkIfEventisEnabled("qr").then((_) => {
+		// 	triggerWebhook(sessionWebhook, sessionId, "qr", { qr });
+		// });
+	});
 
 	checkIfEventisEnabled("ready").then((_) => {
 		client.on("ready", () => {

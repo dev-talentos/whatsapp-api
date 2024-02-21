@@ -65,9 +65,7 @@ const waitForNestedObject = (
 
 const checkIfEventisEnabled = (event) => {
 	return new Promise((resolve, reject) => {
-		if (!disabledCallbacks.includes(event)) {
-			resolve();
-		}
+		resolve();
 	});
 };
 
