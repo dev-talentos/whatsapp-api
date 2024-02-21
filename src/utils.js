@@ -19,13 +19,13 @@ const triggerWebhook = (webhookURL, sessionId, dataType, data) => {
 			}
 		)
 		.catch((error) => {
-			// console.error(
-			// 	"Failed to send new message webhook:",
-			// 	sessionId,
-			// 	dataType,
-			// 	error.message,
-			// 	data
-			// );
+			console.error(
+				"Failed to send new message webhook:",
+				sessionId,
+				dataType,
+				error.message,
+				data
+			);
 		});
 };
 
